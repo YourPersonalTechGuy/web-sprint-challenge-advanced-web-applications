@@ -1,22 +1,89 @@
-import React, { useEffect } from "react";
+import React from "react";
 import axios from "axios";
 
-const Login = () => {
+class Login extends React.Component {
+  state = {
+    creds:{
+      username: "",
+      password: ""
+    },
+    error: ""
+  }
   // make a post request to retrieve a token from the api
   // when you have handled the token, navigate to the BubblePage route
 
-  useEffect(()=>{
-    // make a post request to retrieve a token from the api
-    // when you have handled the token, navigate to the BubblePage route
-  });
-  return (
-    <>
-      <h1>
-        Welcome to the Bubble App!
-        <p>Build a login page here</p>
-      </h1>
-    </>
-  );
+  handleChange = (e) => {
+    this.setState({
+      creds:{
+        ...this.state.creds,
+        [e.target.name]: e.target.value
+      }
+    })
+  }
+
+  componentDidMount(){
+    return localStorage.getItem("token") ? this.props.history.push("/bubblepage") : null
+  }
+
+  submitLogin = (e) => {
+    e.preventDefault();
+
+    axios
+      .post("http://localhost:5000/api/login", this.state.creds)
+      .then((res)=>{
+          localStorage.setItem("token", res.data.payload)
+          this.props.history.push("/bubblepage")
+          this.setState({
+            ...this.state,
+            error: ""
+          })
+      })
+      .catch((err)=>{
+          console.log(err.response)
+          this.setState({
+            ...this.state,
+            error: "Username or Password not valid."
+          })
+      })
+  }
+
+  // useEffect(()=>{
+  //   // make a post request to retrieve a token from the api
+  //   // when you have handled the token, navigate to the BubblePage route
+  //   console.log(setCreds)
+  // },[]);
+  render(){
+    return (
+      <>
+        <div className="login-form-container">
+          {this.state.error && <h2>{this.state.error}</h2>}
+          <form onSubmit={this.submitLogin}>
+              <label>Username
+                <input
+                    type="text"
+                    name="username"
+                    value={this.state.creds.username}
+                    placeholder="Username"
+                    onChange={this.handleChange}
+                />
+              </label>
+  
+              <label>Password
+                <input
+                    type="password"
+                    name="password"
+                    value={this.state.creds.password}
+                    placeholder="Password"
+                    onChange={this.handleChange}
+                />
+              </label>
+  
+              <button>Login</button>
+          </form>
+        </div>
+      </>
+    );
+  }
 };
 
 export default Login;
